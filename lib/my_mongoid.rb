@@ -12,7 +12,12 @@ module MyMongoid
 
     def initialize attrs = nil
       raise ArgumentError, "A class which includes Mongoid::Document is expected" unless attrs.is_a? Hash
+      @attributes = attrs
       @attributes ||= {}
+    end
+
+    def attributes
+      @attributes
     end
 
     module ClassMethods
