@@ -34,6 +34,12 @@ module MyMongoid
 
     module ClassMethods
       def field name
+        self.instance_eval do
+          define_method(name) {self.read_attribute name.to_s}
+          define_method((name.to_s + '=').to_sym) do |value|
+            self.write_attribute name.to_s, value
+          end
+        end
       end
 
       def is_mongoid_model?
