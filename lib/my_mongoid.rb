@@ -1,5 +1,8 @@
-require "my_mongoid/version"
+require_relative "./my_mongoid/version"
 
 module MyMongoid
-  # Your code goes here...
+  module Document
+    module ClassMethods
+    end
+  end
 end
