@@ -28,7 +28,14 @@ module MyMongoid
       @attributes[name] = value
     end
 
+    def new_record?
+      true
+    end
+
     module ClassMethods
+      def field name
+      end
+
       def is_mongoid_model?
         true
       end
