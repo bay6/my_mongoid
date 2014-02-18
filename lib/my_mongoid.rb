@@ -1,5 +1,6 @@
 require_relative "./my_mongoid/version"
 require 'active_support/concern'
+require 'active_support/core_ext'
 
 module MyMongoid
 
@@ -8,6 +9,8 @@ module MyMongoid
 
     included do
       ::MyMongoid.register_model(self)
+      class_attribute :fields
+      self.fields = {}
     end
 
     def initialize attrs = nil
@@ -34,8 +37,14 @@ module MyMongoid
 
     module ClassMethods
       def field name
+        self.fields[name.to_s] = ''
         self.instance_eval do
-          define_method(name) {self.read_attribute name.to_s}
+          define_method(name) do 
+            value = self.read_attribute name.to_s
+            self.class.fields[name.to_s]= value
+            value
+          end
+
           define_method((name.to_s + '=').to_sym) do |value|
             self.write_attribute name.to_s, value
           end
