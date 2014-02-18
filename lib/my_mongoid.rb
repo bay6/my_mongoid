@@ -10,6 +10,11 @@ module MyMongoid
       ::MyMongoid.register_model(self)
     end
 
+    def initialize attrs = nil
+      raise ArgumentError, "A class which includes Mongoid::Document is expected" unless attrs.is_a? Hash
+      @attributes ||= {}
+    end
+
     module ClassMethods
       def is_mongoid_model?
         true
