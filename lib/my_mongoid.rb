@@ -20,6 +20,10 @@ module MyMongoid
       @attributes
     end
 
+    def read_attribute name
+      @attributes.send :[], name
+    end
+
     module ClassMethods
       def is_mongoid_model?
         true
