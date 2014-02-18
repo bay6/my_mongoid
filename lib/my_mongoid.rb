@@ -1,4 +1,5 @@
 require_relative "./my_mongoid/version"
+require_relative "./my_mongoid/field"
 require 'active_support/concern'
 require 'active_support/core_ext'
 
@@ -37,7 +38,7 @@ module MyMongoid
 
     module ClassMethods
       def field name
-        self.fields[name.to_s] = ''
+        self.fields[name.to_s] = ::MyMongoid::Field.new name
         self.instance_eval do
           define_method(name) do 
             value = self.read_attribute name.to_s
