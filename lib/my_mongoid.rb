@@ -24,6 +24,10 @@ module MyMongoid
       @attributes.send :[], name
     end
 
+    def write_attribute name, value
+      @attributes[name] = value
+    end
+
     module ClassMethods
       def is_mongoid_model?
         true
