@@ -48,19 +48,21 @@ module MyMongoid
     end
 
     module ClassMethods
-      def field name
+      def field name, as=nil
         raise MyMongoid::DuplicateFieldError, 'duplicate' if self.fields[name.to_s]
-        self.fields[name.to_s] = ::MyMongoid::Field.new name
+        self.fields[name.to_s] = ::MyMongoid::Field.new name, as
         self.instance_eval do
           define_method(name) do 
             value = self.read_attribute name.to_s
             self.class.fields[name.to_s]= value
             value
           end
+          alias_method as[:as].to_s, name if as
 
           define_method((name.to_s + '=').to_sym) do |value|
             self.write_attribute name.to_s, value
           end
+          alias_method as[:as].to_s + '=', (name.to_s + '=') if as
         end
       end
 
