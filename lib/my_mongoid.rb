@@ -1,5 +1,6 @@
 require_relative "./my_mongoid/version"
 require_relative "./my_mongoid/field"
+require_relative "./my_mongoid/duplicate_field_error"
 require 'active_support/concern'
 require 'active_support/core_ext'
 
@@ -16,6 +17,7 @@ module MyMongoid
 
     def initialize attrs = nil
       raise ArgumentError, "A class which includes Mongoid::Document is expected" unless attrs.is_a? Hash
+      self.class.fields['_id'] = ::MyMongoid::Field.new '_id'
       @attributes = attrs
       @attributes ||= {}
     end
@@ -38,6 +40,7 @@ module MyMongoid
 
     module ClassMethods
       def field name
+        raise MyMongoid::DuplicateFieldError, 'duplicate' if self.fields[name.to_s]
         self.fields[name.to_s] = ::MyMongoid::Field.new name
         self.instance_eval do
           define_method(name) do 
