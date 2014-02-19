@@ -34,6 +34,12 @@ module MyMongoid
       @attributes[name] = value
     end
 
+    def process_attributes options={}
+      options.each_pair do |key, value|
+        self.send key.to_s + '=', value
+      end
+    end
+
     def new_record?
       true
     end
