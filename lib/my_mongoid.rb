@@ -18,7 +18,8 @@ module MyMongoid
     def initialize attrs = nil
       raise ArgumentError, "A class which includes Mongoid::Document is expected" unless attrs.is_a? Hash
       self.class.fields['_id'] = ::MyMongoid::Field.new '_id'
-      @attributes = attrs
+      @attributes = attrs.with_indifferent_access
+      self.attributes = attrs
       @attributes ||= {}
     end
 
@@ -35,10 +36,12 @@ module MyMongoid
     end
 
     def process_attributes options={}
+      raise MyMongoid::UnknownAttributeError unless options.each_key.all?{|x| self.fields.keys.include? x.to_s}
       options.each_pair do |key, value|
-        self.send key.to_s + '=', value
+        self.send(key.to_s + '=', value)
       end
     end
+    alias :attributes= :process_attributes
 
     def new_record?
       true
