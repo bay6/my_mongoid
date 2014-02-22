@@ -2,7 +2,6 @@ require_relative "../spec_helper"
 
 class Event
   include MyMongoid::Document
-  #field :public
 end
 
 describe "Document modules:" do

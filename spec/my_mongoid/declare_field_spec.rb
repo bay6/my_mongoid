@@ -122,10 +122,5 @@ describe "Field options:" do
     expect(record.n).to eq(20)
   end
 
-  it "by default aliases '_id' as 'id'" do
-    record = model.new({})
-    record.id = "abc"
-    expect(record._id).to eq("abc")
-  end
 end
 
