@@ -1,1 +1,0 @@
-require "../lib/my_mongoid"
