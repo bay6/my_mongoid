@@ -3,6 +3,7 @@ require_relative "./my_mongoid/field"
 require_relative "./my_mongoid/duplicate_field_error"
 require 'active_support/concern'
 require 'active_support/core_ext'
+require 'moped'
 
 module MyMongoid
 
@@ -13,6 +14,16 @@ module MyMongoid
       ::MyMongoid.register_model(self)
       class_attribute :fields
       self.fields = {}
+    end
+    
+    def session
+      #should be able to read from yaml configuration file
+      @session ||= ::Moped::Session.new([ "127.0.0.1:27017" ])
+      @session.use 'eacho_test'
+    end
+
+    def table_name
+      self.class.to_s.downcase
     end
 
     def initialize attrs = nil
@@ -31,6 +42,22 @@ module MyMongoid
     def read_attribute name
       @attributes.send :[], name
     end
+    
+    #Create method
+    def create params
+      session.with(safe: true) do |safe|
+        safe[table_name.to_sym].insert params
+        #safe[table_name.to_sym].insert {_id: }
+      end
+      puts 'abc'
+    end
+
+    def update params
+      session.with(safe: true) do |safe|
+        safe[table_name.to_sym].update_attributes params
+      end
+    end
+
 
     def write_attribute name, value
       @attributes[name] = value
