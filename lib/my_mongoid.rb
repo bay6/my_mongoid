@@ -46,15 +46,22 @@ module MyMongoid
     #Create method
     def create params
       session.with(safe: true) do |safe|
-        safe[table_name.to_sym].insert params
-        #safe[table_name.to_sym].insert {_id: }
+        safe[table_name.to_sym].insert( params)
+        safe[table_name.to_sym].insert({_id: Time.now.to_i})
+        safe[table_name.to_sym].insert({created_at: Time.now})
       end
-      puts 'abc'
     end
 
     def update params
       session.with(safe: true) do |safe|
-        safe[table_name.to_sym].update_attributes params
+        safe[table_name.to_sym].update_attributes( params)
+        safe[table_name.to_sym].update_attributes(updated_at: Time.now)
+      end
+    end
+
+    def delete id
+      session.with(safe: true) do |safe|
+      safe[table_name.to_sym].find(id).remove
       end
     end
 
