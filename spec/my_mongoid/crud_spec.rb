@@ -1,3 +1,5 @@
+require_relative "../spec_helper"
+require_relative "../app/models/event"
 require "active_support/inflector"
 
 describe "Should be able to configure MyMongoid:" do
@@ -80,12 +82,6 @@ describe "Should be able to get database session:" do
       end
   end
   end
-end
-
-
-class Event
-  include MyMongoid::Document
-  field :public
 end
 
 describe "Should be able to create a record:" do

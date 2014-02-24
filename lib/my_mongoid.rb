@@ -36,6 +36,7 @@ module MyMongoid
 
     def initialize attrs = nil
       raise ArgumentError, "A class which includes Mongoid::Document is expected" unless attrs.is_a? Hash
+      @new_record = true
       self.class.fields['_id'] = ::MyMongoid::Field.new '_id'
       self.class.fields['id'] = ::MyMongoid::Field.new 'id'
       @attributes = attrs.with_indifferent_access
@@ -87,7 +88,7 @@ module MyMongoid
     alias :attributes= :process_attributes
 
     def new_record?
-      new_record
+      @new_record
     end
 
     def to_document

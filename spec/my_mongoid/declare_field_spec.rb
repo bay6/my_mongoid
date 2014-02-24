@@ -1,10 +1,5 @@
 require_relative '../spec_helper'
-
-class Event
-  include MyMongoid::Document
-  field :public
-  field :created_at
-end
+require_relative "../app/models/event"
 
 describe "Declare fields:" do
   let(:attrs) {
