@@ -92,7 +92,7 @@ describe "Should be able to create a record:" do
   describe "model collection:" do
     describe "Model.collection_name" do
       it "should use active support's titleize method" do
-        expect(Event.collection.name).to eq(Event.name.tableize)
+        expect(Event.collection_name).to eq(Event.name.tableize)
       end
     end
 

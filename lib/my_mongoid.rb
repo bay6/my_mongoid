@@ -127,8 +127,12 @@ module MyMongoid
         true
       end
 
+      def collection_name
+        self.name.tableize
+      end
+
       def collection
-        MyMongoid.session[self.name.tableize]
+        MyMongoid.session[collection_name]
       end
 
       def save doc
