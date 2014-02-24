@@ -1,8 +1,5 @@
 require_relative "../spec_helper"
-
-class Event
-  include MyMongoid::Document
-end
+require_relative "../app/models/event"
 
 describe "Document modules:" do
   it "creates MyMongoid::Document" do

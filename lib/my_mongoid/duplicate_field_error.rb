@@ -5,4 +5,10 @@ module MyMongoid
   
   class UnknownAttributeError < ArgumentError
   end
+
+  class UnconfiguredDatabaseError < ArgumentError
+  end
+
+  class RecordNotFoundError < StandardError
+  end
 end
