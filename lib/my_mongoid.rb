@@ -1,6 +1,7 @@
 require_relative "./my_mongoid/version"
 require_relative "./my_mongoid/field"
 require_relative "./my_mongoid/duplicate_field_error"
+require_relative "./my_mongoid/configuration"
 require 'active_support/concern'
 require 'active_support/core_ext'
 require 'moped'
@@ -15,7 +16,7 @@ module MyMongoid
       class_attribute :fields
       self.fields = {}
     end
-    
+
     def session
       #should be able to read from yaml configuration file
       @session ||= ::Moped::Session.new([ "127.0.0.1:27017" ])
@@ -114,5 +115,13 @@ module MyMongoid
 
   def self.register_model(klass)
     models.push(klass) unless models.include?(klass)
+  end
+
+  def self.configuration
+    MyMongoid::Configuration.instance
+  end
+
+  def self.configure
+    block_given? ? yield(self.configuration) : self.configuration
   end
 end
