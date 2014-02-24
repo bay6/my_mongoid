@@ -89,7 +89,7 @@ module MyMongoid
         self.instance_eval do
           define_method(name) do 
             value = self.read_attribute name.to_s
-            self.class.fields[name.to_s]= value
+            self.class.fields[name.to_s]= MyMongoid::Field.new(name, as)
             value
           end
           alias_method as[:as].to_s, name if as
