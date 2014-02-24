@@ -87,4 +87,8 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 =end
+  # Drop all collections and clear the identity map before each spec.
+  config.before(:each) do
+    MyMongoid.purge!
+  end
 end

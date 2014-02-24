@@ -12,10 +12,14 @@ module MyMongoid
   module Document
     extend ActiveSupport::Concern
 
+    attr_accessor :new_record
+
     included do
       ::MyMongoid.register_model(self)
       class_attribute :fields
       self.fields = {}
+
+      field :_id, :as => :id
     end
 
     def session
@@ -81,7 +85,11 @@ module MyMongoid
     alias :attributes= :process_attributes
 
     def new_record?
-      true
+      new_record
+    end
+
+    def to_document
+      attributes
     end
 
     module ClassMethods
@@ -109,6 +117,18 @@ module MyMongoid
 
       def collection
         MyMongoid.session[self.name.tableize]
+      end
+
+      def save(doc)
+        collection.insert(doc.to_document)
+        doc.new_record = false
+        true
+      end
+
+      def create(attr = {})
+        doc = new(attr)
+        save(doc)
+        doc
       end
     end
   end
@@ -139,5 +159,18 @@ module MyMongoid
     session ||= ::Moped::Session.new([configuration.host])
     session.use configuration.database
     session
+  end
+
+
+  # Purge all data in all collections, including indexes.
+  #
+  # Examples
+  #   MyMongoid.purge!
+  #
+  # Returns true when complete.
+  def self.purge!
+    session.collections.each do |collection|
+      collection.drop
+    end and true
   end
 end

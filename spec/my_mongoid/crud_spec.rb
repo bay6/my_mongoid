@@ -103,3 +103,47 @@ describe "Should be able to create a record:" do
   end
 end
 
+describe "Should be able to create a record:" do
+  let(:attr) {
+    {:id => 123}
+  }
+
+  let(:event) {
+    Event.new(attr)
+  }
+
+  describe "#to_document" do
+    it "should be a bson document" do
+      expect{
+        event.to_document.to_bson
+      }.not_to raise_error
+    end
+  end
+
+  describe "Model#save" do
+    describe "successful insert:" do
+      it "should insert a new record into the db" do
+        count = Event.collection.find.to_a.size
+        Event.save(event)
+        expect(Event.collection.find.to_a.size).to eq(count + 1)
+      end
+
+      it "should return true" do
+        expect(Event.save(event)).to eq(true)
+      end
+
+      it "should make Model#new_record return false" do
+        Event.save(event)
+        expect(event.new_record?).to eq(false)
+      end
+    end
+  end
+
+  describe "Model.create" do
+    it "should return a saved record" do
+      event = Event.create(attr)
+      expect(event).to be_a(Event)
+      expect(event.new_record?).to eq(false)
+    end
+  end
+end
