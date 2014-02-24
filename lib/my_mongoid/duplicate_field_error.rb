@@ -8,4 +8,7 @@ module MyMongoid
 
   class UnconfiguredDatabaseError < ArgumentError
   end
+
+  class RecordNotFoundError < StandardError
+  end
 end

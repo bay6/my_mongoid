@@ -17,7 +17,9 @@ module MyMongoid
     included do
       ::MyMongoid.register_model(self)
       class_attribute :fields
+      class_attribute :alias_fields
       self.fields = {}
+      self.alias_fields = {}
 
       field :_id, :as => :id
     end
@@ -93,6 +95,14 @@ module MyMongoid
     end
 
     module ClassMethods
+      def instantiate attrs = nil
+        attributes = attrs || {}
+        doc = allocate
+        doc.instance_variable_set(:@attributes, attributes)
+        doc.new_record = false
+        doc
+      end
+
       def field name, as=nil
         raise MyMongoid::DuplicateFieldError, 'duplicate' if self.fields[name.to_s]
         self.fields[name.to_s] = ::MyMongoid::Field.new name, as
@@ -108,6 +118,8 @@ module MyMongoid
             self.write_attribute name.to_s, value
           end
           alias_method as[:as].to_s + '=', (name.to_s + '=') if as
+
+          self.alias_fields[as[:as].to_s] = name.to_s if as
         end
       end
 
@@ -119,17 +131,41 @@ module MyMongoid
         MyMongoid.session[self.name.tableize]
       end
 
-      def save(doc)
+      def save doc
         collection.insert(doc.to_document)
         doc.new_record = false
         true
       end
 
-      def create(attr = {})
-        doc = new(attr)
+      def create attrs = {}
+        doc = new(attrs)
         doc._id = BSON::ObjectId.new unless doc._id
         save(doc)
         doc
+      end
+
+      def find attrs
+        case attrs 
+        when Hash
+          selector = create_selector(attrs)
+        when String
+          selector = create_selector({"_id" => attrs})
+        when Fixnum
+          selector = create_selector({"_id" => attrs})
+        end
+
+        result = collection.find(selector).to_a
+        raise RecordNotFoundError if result.empty?
+        instantiate(result.first)
+      end
+
+      def create_selector attrs
+        selector ||= {}
+        attrs.each_pair do |key, value|
+          field = alias_fields[key.to_s] || key.to_s
+          selector[field] = value
+        end
+        selector
       end
     end
   end
