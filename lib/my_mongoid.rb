@@ -4,8 +4,8 @@ require_relative "./my_mongoid/duplicate_field_error"
 require_relative "./my_mongoid/configuration"
 require 'active_support/concern'
 require 'active_support/core_ext'
+require "active_support/inflector"
 require 'moped'
-require "pry"
 
 module MyMongoid
 
@@ -107,6 +107,9 @@ module MyMongoid
         true
       end
 
+      def collection
+        MyMongoid.session[self.name.tableize]
+      end
     end
   end
 

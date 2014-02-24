@@ -1,4 +1,4 @@
-require "pry"
+require "active_support/inflector"
 
 describe "Should be able to configure MyMongoid:" do
   describe "MyMongoid::Configuration" do
@@ -81,3 +81,25 @@ describe "Should be able to get database session:" do
   end
   end
 end
+
+
+class Event
+  include MyMongoid::Document
+end
+
+describe "Should be able to create a record:" do
+  describe "model collection:" do
+    describe "Model.collection_name" do
+      it "should use active support's titleize method" do
+        expect(Event.collection.name).to eq(Event.name.tableize)
+      end
+    end
+
+    describe "Model.collection" do
+      it "should return a model's collection" do
+        expect(Event.collection).to be_a(Moped::Collection)
+      end
+    end
+  end
+end
+
