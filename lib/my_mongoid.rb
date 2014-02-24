@@ -127,6 +127,7 @@ module MyMongoid
 
       def create(attr = {})
         doc = new(attr)
+        doc._id = BSON::ObjectId.new unless doc._id
         save(doc)
         doc
       end

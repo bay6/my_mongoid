@@ -85,6 +85,7 @@ end
 
 class Event
   include MyMongoid::Document
+  field :public
 end
 
 describe "Should be able to create a record:" do
@@ -105,7 +106,7 @@ end
 
 describe "Should be able to create a record:" do
   let(:attr) {
-    {:id => 123}
+    {:public => true}
   }
 
   let(:event) {
@@ -144,6 +145,13 @@ describe "Should be able to create a record:" do
       event = Event.create(attr)
       expect(event).to be_a(Event)
       expect(event.new_record?).to eq(false)
+    end
+  end
+
+  describe "saving a record with no id" do
+    it "should generate a random id" do
+      event = Event.create(attr)
+      expect(event.id).to be_a(BSON::ObjectId)
     end
   end
 end
