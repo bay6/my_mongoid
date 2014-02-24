@@ -5,6 +5,7 @@ require_relative "./my_mongoid/configuration"
 require 'active_support/concern'
 require 'active_support/core_ext'
 require 'moped'
+require "pry"
 
 module MyMongoid
 
@@ -123,5 +124,17 @@ module MyMongoid
 
   def self.configure
     block_given? ? yield(self.configuration) : self.configuration
+  end
+
+  def self.session
+    raise UnconfiguredDatabaseError unless configuration.host
+    raise UnconfiguredDatabaseError unless configuration.database
+    @session ||= create_session
+  end
+
+  def self.create_session
+    session ||= ::Moped::Session.new([configuration.host])
+    session.use configuration.database
+    session
   end
 end
