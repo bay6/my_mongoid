@@ -24,12 +24,6 @@ module MyMongoid
       field :_id, :as => :id
     end
 
-    def session
-      #should be able to read from yaml configuration file
-      @session ||= ::Moped::Session.new([ "127.0.0.1:27017" ])
-      @session.use 'eacho_test'
-    end
-
     def table_name
       self.class.to_s.downcase
     end
@@ -52,31 +46,51 @@ module MyMongoid
       @attributes.send :[], name
     end
     
-    #Create method
-    def create params
-      session.with(safe: true) do |safe|
-        safe[table_name.to_sym].insert( params)
-        safe[table_name.to_sym].insert({_id: Time.now.to_i})
-        safe[table_name.to_sym].insert({created_at: Time.now})
-      end
-    end
-
-    def update params
-      session.with(safe: true) do |safe|
-        safe[table_name.to_sym].update_attributes( params)
-        safe[table_name.to_sym].update_attributes(updated_at: Time.now)
-      end
-    end
-
-    def delete id
-      session.with(safe: true) do |safe|
-      safe[table_name.to_sym].find(id).remove
-      end
-    end
-
-
     def write_attribute name, value
+      if changed_attributes[name.to_s] == value
+        changed_attributes.delete(name.to_s)
+      else 
+        changed_attributes[name.to_s] = read_attribute(name) unless read_attribute(name) == value
+      end  
       @attributes[name] = value
+    end
+
+    def changed_attributes
+      @changed_attributes ||= {}
+    end
+
+    def changed?
+      !changed_attributes.empty?
+    end
+
+    def atomic_updates
+      result ||= {}
+      if !new_record? && changed?
+        updates ||= {}
+        changed_attributes.keys.each do |key|
+          updates[key] = read_attribute(key)
+        end
+        result["$set"] = updates
+      end
+      result
+    end
+
+    def update_document
+      # get the field changes
+      updates = atomic_updates
+
+      # make the update query
+      unless updates.empty?
+        selector = { "_id" => self.id }
+        self.class.collection.find(selector).update(updates)
+      end
+    end
+
+    def update_attributes attrs = {}
+      attrs.with_indifferent_access.each_pair do |key, value|
+        write_attribute(key, value)
+      end
+      update_document
     end
 
     def process_attributes options={}
@@ -93,6 +107,19 @@ module MyMongoid
 
     def to_document
       attributes
+    end
+
+    def save
+      self.class.save(self)
+    end
+
+    def delete
+      self.class.collection.find({"_id" => self.id}).remove
+      @deleted = true
+    end
+
+    def deleted?
+      @deleted ||= false
     end
 
     module ClassMethods
@@ -137,15 +164,16 @@ module MyMongoid
       end
 
       def save doc
+        doc._id = BSON::ObjectId.new unless doc._id
         collection.insert(doc.to_document)
         doc.new_record = false
+        doc.changed_attributes.clear
         true
       end
 
       def create attrs = {}
         doc = new(attrs)
-        doc._id = BSON::ObjectId.new unless doc._id
-        save(doc)
+        doc.save
         doc
       end
 

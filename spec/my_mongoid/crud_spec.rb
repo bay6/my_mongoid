@@ -196,3 +196,160 @@ describe "Should be able to find a record:" do
     end
   end
 end
+
+describe "Should be able to update a record" do
+  describe "#changed_attributes" do
+    let(:attrs) {
+      {"_id" => "123", "public" => true}
+    }
+
+    let(:event) {
+      Event.find(attrs)
+    }
+
+    before do
+      Event.create(attrs)
+    end
+
+    it "should be an empty hash initially" do
+      expect(event.changed_attributes).to be_empty
+    end
+
+    it "should track writes to attributes" do
+      event.public = false
+      expect(event.changed_attributes.has_key?("public")).to eq(true)
+    end
+
+    it "should keep the original attribute values" do
+      event.public = false
+      expect(event.changed_attributes["public"]).to eq(true)
+    end
+
+    it "should not make a field dirty if the assigned value is equaled to the old value" do
+      event.public = true
+      expect(event.changed_attributes.has_key?("public")).to eq(false)
+    end
+  end
+end
+
+describe "Should track changes made to a record" do
+  describe "#changed?" do
+    let(:attrs) {
+      {"_id" => "123", "public" => true}
+    }
+
+    let(:event) {
+      Event.find(attrs)
+    }
+
+    before do
+      Event.create(attrs)
+    end
+
+    it "should be false for a newly instantiated record" do
+      expect(event).to_not be_changed
+    end
+
+    it "should be true if a field changed" do
+      event.public = false
+      expect(event).to be_changed
+    end
+  end
+end
+
+describe "Should be able to update a record:" do
+  let(:attrs) {
+    {"_id" => "123", "public" => true}
+  }
+
+  let(:event) {
+    Event.new(attrs)
+  }
+
+  let(:event1) {
+    Event.create(attrs)
+  }
+
+  let(:event2) {
+    Event.find("123")
+  }
+
+  describe "#atomic_updates" do
+    it "should return {} if nothing changed" do
+      event.save
+      expect(event.atomic_updates).to be_empty
+    end
+
+    it "should return {} if record is not a persisted document" do
+      event.public = false
+      expect(event.atomic_updates).to be_empty
+    end
+
+    it "should generate the $set update operation to update a persisted document" do
+      event.save
+      event.public = false
+      expect(event.atomic_updates).to eq({"$set"=>{"public"=>false}})
+    end
+  end
+
+  describe "updating database:" do
+    describe "#save" do
+      it "should have no changes right after persisting" do
+        event.public = false
+        event.save
+        expect(event).to_not be_changed 
+      end
+
+      it "should save the changes if a document is already persisted" do
+        event.public = false
+        event.save
+        expect(event2.public).to eq(false)
+      end
+    end
+
+    describe "#update_document" do
+      it "should not issue query if nothing changed" do
+        event1.update_document
+        expect(event2.attributes).to eq(attrs)
+        expect_any_instance_of(Moped::Query).to_not receive(:update)
+      end
+
+      it "should update the document in database if there are changes" do
+        event1.public = false
+        event1.update_document
+        expect(event2.public).to eq(false)
+      end
+    end
+
+    describe "#update_attributes" do
+      it "should change and persiste attributes of a record" do
+        event1.update_attributes({"public" => false})
+        expect(event2.public).to eq(false)
+      end
+    end    
+  end
+end
+
+describe "Should be able to delete a record:" do
+  describe "#delete" do
+    before do
+      Event.create({"_id" => "123"})
+    end
+
+    let(:event) {
+      Event.find("123")
+    }
+
+    it "should delete a record from db" do
+      count = Event.collection.find.to_a.size
+      event.delete
+      expect(Event.collection.find.to_a.size).to eq(count - 1)
+    end
+
+    it "should return true for deleted?" do
+      event.delete
+      expect(event).to be_deleted
+    end
+  end
+end
+
