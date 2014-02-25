@@ -52,22 +52,6 @@ module MyMongoid
       @attributes.send :[], name
     end
     
-    #Create method
-    def create params
-      session.with(safe: true) do |safe|
-        safe[table_name.to_sym].insert( params)
-        safe[table_name.to_sym].insert({_id: Time.now.to_i})
-        safe[table_name.to_sym].insert({created_at: Time.now})
-      end
-    end
-
-    def update params
-      session.with(safe: true) do |safe|
-        safe[table_name.to_sym].update_attributes( params)
-        safe[table_name.to_sym].update_attributes(updated_at: Time.now)
-      end
-    end
-
     def delete id
       session.with(safe: true) do |safe|
       safe[table_name.to_sym].find(id).remove
@@ -90,6 +74,36 @@ module MyMongoid
 
     def changed?
       !changed_attributes.empty?
+    end
+
+    def atomic_updates
+      result ||= {}
+      if !new_record? && changed?
+        updates ||= {}
+        changed_attributes.keys.each do |key|
+          updates[key] = read_attribute(key)
+        end
+        result["$set"] = updates
+      end
+      result
+    end
+
+    def update_document
+      # get the field changes
+      updates = atomic_updates
+
+      # make the update query
+      unless updates.empty?
+        selector = { "_id" => self.id }
+        self.class.collection.find(selector).update(updates)
+      end
+    end
+
+    def update_attributes attrs = {}
+      attrs.with_indifferent_access.each_pair do |key, value|
+        write_attribute(key, value)
+      end
+      update_document
     end
 
     def process_attributes options={}
