@@ -24,12 +24,6 @@ module MyMongoid
       field :_id, :as => :id
     end
 
-    def session
-      #should be able to read from yaml configuration file
-      @session ||= ::Moped::Session.new([ "127.0.0.1:27017" ])
-      @session.use 'eacho_test'
-    end
-
     def table_name
       self.class.to_s.downcase
     end
@@ -52,13 +46,6 @@ module MyMongoid
       @attributes.send :[], name
     end
     
-    def delete id
-      session.with(safe: true) do |safe|
-      safe[table_name.to_sym].find(id).remove
-      end
-    end
-
-
     def write_attribute name, value
       if changed_attributes[name.to_s] == value
         changed_attributes.delete(name.to_s)
@@ -126,6 +113,15 @@ module MyMongoid
       self.class.save(self)
     end
 
+    def delete
+      self.class.collection.find({"_id" => self.id}).remove
+      @deleted = true
+    end
+
+    def deleted?
+      @deleted ||= false
+    end
+
     module ClassMethods
       def instantiate attrs = nil
         attributes = attrs || {}
@@ -177,7 +173,7 @@ module MyMongoid
 
       def create attrs = {}
         doc = new(attrs)
-        save(doc)
+        doc.save
         doc
       end
 

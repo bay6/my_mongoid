@@ -329,3 +329,27 @@ describe "Should be able to update a record:" do
     end    
   end
 end
+
+describe "Should be able to delete a record:" do
+  describe "#delete" do
+    before do
+      Event.create({"_id" => "123"})
+    end
+
+    let(:event) {
+      Event.find("123")
+    }
+
+    it "should delete a record from db" do
+      count = Event.collection.find.to_a.size
+      event.delete
+      expect(Event.collection.find.to_a.size).to eq(count - 1)
+    end
+
+    it "should return true for deleted?" do
+      event.delete
+      expect(event).to be_deleted
+    end
+  end
+end
+
