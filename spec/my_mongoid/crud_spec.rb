@@ -196,3 +196,84 @@ describe "Should be able to find a record:" do
     end
   end
 end
+
+describe "Should be able to update a record" do
+  describe "#changed_attributes" do
+    let(:attrs) {
+      {"_id" => "123", "public" => true}
+    }
+
+    let(:event) {
+      Event.find(attrs)
+    }
+
+    before do
+      Event.create(attrs)
+    end
+
+    it "should be an empty hash initially" do
+      expect(event.changed_attributes).to eq({})
+    end
+
+    it "should track writes to attributes" do
+      event.public = false
+      expect(event.changed_attributes.has_key?("public")).to eq(true)
+    end
+
+    it "should keep the original attribute values" do
+      event.public = false
+      expect(event.changed_attributes["public"]).to eq(true)
+    end
+
+    it "should not make a field dirty if the assigned value is equaled to the old value" do
+      event.public = true
+      expect(event.changed_attributes.has_key?("public")).to eq(false)
+    end
+  end
+end
+
+describe "Should track changes made to a record" do
+  describe "#changed?" do
+    let(:attrs) {
+      {"_id" => "123", "public" => true}
+    }
+
+    let(:event) {
+      Event.find(attrs)
+    }
+
+    before do
+      Event.create(attrs)
+    end
+
+    it "should be false for a newly instantiated record" do
+      expect(event.changed?).to eq(false)
+    end
+
+    it "should be true if a field changed" do
+      event.public = false
+      expect(event.changed?).to eq(true)
+    end
+  end
+end
+
+describe "Should be able to update a record:" do
+  describe "updating database:" do
+    describe "#save" do
+      let(:attrs) {
+        {"_id" => "123", "public" => true}
+      }
+
+      let(:event) {
+        Event.new(attrs)
+      }
+
+      it "should have no changes right after persisting" do
+        event.public = false
+        event.save
+        expect(event.changed?).to eq(false)
+      end
+    end
+  end
+end
+

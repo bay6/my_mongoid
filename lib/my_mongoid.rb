@@ -76,7 +76,20 @@ module MyMongoid
 
 
     def write_attribute name, value
+      if changed_attributes[name.to_s] == value
+        changed_attributes.delete(name.to_s)
+      else 
+        changed_attributes[name.to_s] = read_attribute(name) unless read_attribute(name) == value
+      end  
       @attributes[name] = value
+    end
+
+    def changed_attributes
+      @changed_attributes ||= {}
+    end
+
+    def changed?
+      !changed_attributes.empty?
     end
 
     def process_attributes options={}
@@ -93,6 +106,10 @@ module MyMongoid
 
     def to_document
       attributes
+    end
+
+    def save
+      self.class.save(self)
     end
 
     module ClassMethods
@@ -137,14 +154,15 @@ module MyMongoid
       end
 
       def save doc
+        doc._id = BSON::ObjectId.new unless doc._id
         collection.insert(doc.to_document)
         doc.new_record = false
+        doc.changed_attributes.clear
         true
       end
 
       def create attrs = {}
         doc = new(attrs)
-        doc._id = BSON::ObjectId.new unless doc._id
         save(doc)
         doc
       end
