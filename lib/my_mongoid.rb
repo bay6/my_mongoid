@@ -4,6 +4,7 @@ require_relative "./my_mongoid/field"
 require_relative "./my_mongoid/duplicate_field_error"
 require 'active_support/concern'
 require 'active_support/core_ext'
+require "active_support/inflector"
 require 'moped'
 
 module MyMongoid
@@ -83,6 +84,10 @@ module MyMongoid
       true
     end
 
+    def to_document
+      attributes
+    end
+
     module ClassMethods
 
       def field name, as=nil
@@ -106,6 +111,16 @@ module MyMongoid
       def is_mongoid_model?
         true
       end
+
+      def collection_name
+        self.to_s.tableize
+      end
+
+
+      def collection
+        MyMongoid.session[collection_name]
+      end
+
 
     end
   end
