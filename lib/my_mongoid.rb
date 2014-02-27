@@ -1,4 +1,5 @@
 require_relative "./my_mongoid/version"
+require_relative "./my_mongoid/configuration"
 require_relative "./my_mongoid/field"
 require_relative "./my_mongoid/duplicate_field_error"
 require 'active_support/concern'
@@ -83,6 +84,7 @@ module MyMongoid
     end
 
     module ClassMethods
+
       def field name, as=nil
         raise MyMongoid::DuplicateFieldError, 'duplicate' if self.fields[name.to_s]
         self.fields[name.to_s] = ::MyMongoid::Field.new name, as
@@ -115,4 +117,5 @@ module MyMongoid
   def self.register_model(klass)
     models.push(klass) unless models.include?(klass)
   end
+
 end
