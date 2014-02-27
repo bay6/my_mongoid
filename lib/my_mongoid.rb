@@ -110,6 +110,13 @@ module MyMongoid
     end
   end
 
+  def self.session
+    raise MyMongoid::UnconfiguredDatabaseError, 'database configuration' unless (configuration.host and configuration.database)
+    @session ||= ::Moped::Session.new([configuration.host])
+    @session.use configuration.database
+    @session
+  end
+  
   def self.models
     @models ||= []
   end
