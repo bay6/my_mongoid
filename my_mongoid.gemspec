@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"
   spec.add_development_dependency "active_support"
-  spec.add_development_dependency "debugger"
+  spec.add_development_dependency "pry-debugger"
   spec.add_development_dependency "i18n"
+  spec.add_development_dependency("moped", ['~> 2.0.beta6'])
 end
